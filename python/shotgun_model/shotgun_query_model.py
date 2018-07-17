@@ -640,6 +640,7 @@ class ShotgunQueryModel(QtGui.QStandardItemModel):
         All parameters passed to this method will be forwarded to
         :meth:`DataHandler.generate_data_request`.
         """
+
         if not self._sg_data_retriever:
             raise sgtk.TankError("Data retriever is not available!")
 
@@ -653,6 +654,8 @@ class ShotgunQueryModel(QtGui.QStandardItemModel):
         # thumbnails are going to be the same before and after the refresh and any additional overhead
         # should be weighed against a cleaner user experience
         if self.__current_work_id is not None:
+            msg = 'Stopping work: {work_id}'.format(work_id=self.__current_work_id)
+            self._log_debug(msg)
             self._sg_data_retriever.stop_work(self.__current_work_id)
             self.__current_work_id = None
 
@@ -823,6 +826,7 @@ class ShotgunQueryModel(QtGui.QStandardItemModel):
 
         :param msg: debug message
         """
+        print 'query model log debug:', msg
         self._bundle.log_debug("[%s] %s" % (self.__class__.__name__, msg))
 
     def _log_warning(self, msg):
@@ -958,6 +962,9 @@ class ShotgunQueryModel(QtGui.QStandardItemModel):
         """
         self._log_debug("--> Shotgun data arrived. (%s records)" % len(sg_data))
 
+        #for data in sg_data:
+        #    print data
+
         # pre-process data
         sg_data = self._before_data_processing(sg_data)
 
@@ -1033,6 +1040,8 @@ class ShotgunQueryModel(QtGui.QStandardItemModel):
                         self._update_item(model_item, data_item)
 
             self._log_debug("...diffs applied!")
+
+        self._log_debug("data refreshed!")
 
         # and emit completion signal
         self.data_refreshed.emit(len(modified_items) > 0)

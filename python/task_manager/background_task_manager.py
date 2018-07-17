@@ -20,10 +20,12 @@ from .background_task import BackgroundTask
 from .worker_thread import WorkerThread
 from .results_poller import ResultsDispatcher
 
+import datetime
+
 # Set to True to enable extensive debug logging.
 # Useful for debugging concurrency issues.
 # Do not release with this setting set to True!
-ENABLE_DETAILED_DEBUG = False
+ENABLE_DETAILED_DEBUG = True
 
 
 class BackgroundTaskManager(QtCore.QObject):
@@ -79,6 +81,7 @@ class BackgroundTaskManager(QtCore.QObject):
 
         # available threads and running tasks:
         self._max_threads = max_threads or 8
+        self._debug_log('Max threads %d' % self._max_threads)
         self._all_threads = []
         self._available_threads = []
         self._running_tasks = {}
@@ -127,6 +130,9 @@ class BackgroundTaskManager(QtCore.QObject):
 
         :param msg: The message to be logged.
         """
+
+        msg = 'Task Manager {time}: {data}'.format(time=datetime.datetime.now(), data=msg)
+        print msg
         self._bundle.log_debug("Task Manager: %s" % msg)
 
     def start_processing(self):

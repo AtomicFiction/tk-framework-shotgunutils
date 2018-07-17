@@ -394,7 +394,9 @@ class ShotgunModel(ShotgunQueryModel):
         all existing items from the model are removed. This does affect view related
         states such as selection.
         """
+        print 'SG MODEL REFRESH DATA'
         self._request_data()
+        print 'REQUEST DATA DONE'
 
     def _item_created(self, item):
         """

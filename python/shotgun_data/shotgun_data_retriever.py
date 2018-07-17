@@ -27,11 +27,11 @@ def _indicate_resource_accessed(file_path):
 
 class ShotgunDataRetriever(QtCore.QObject):
     """
-    Asynchronous data retriever class which can be used to retrieve data and 
-    thumbnails from Shotgun and from disk thumbnail cache. Uses the 
-    :class:`~task_manager.BackgroundTaskManager` to run tasks in background 
+    Asynchronous data retriever class which can be used to retrieve data and
+    thumbnails from Shotgun and from disk thumbnail cache. Uses the
+    :class:`~task_manager.BackgroundTaskManager` to run tasks in background
     threads and emits signals when each query has either completed or failed.
-    Requests are queued up using for example the :meth:`execute_find()` and 
+    Requests are queued up using for example the :meth:`execute_find()` and
     :meth:`request_thumbnail()` methods.
 
     Requests are executed in the following priority order:
@@ -39,29 +39,29 @@ class ShotgunDataRetriever(QtCore.QObject):
     - First any thumbnails that are already cached on disk are handled.
     - Next, shotgun find() queries are handled.
     - Lastly thumbnail downloads are handled.
-    
-    The thread will emit work_completed and work_failure signals when 
-    tasks are completed (or fail). The :meth:`clear()` method will 
-    clear the current queue. The currently processing item will finish 
-    processing and may send out signals even after a clear. Make sure you 
-    call the :meth:`stop()` method prior to destruction in order for the 
-    system to gracefully shut down.    
-    
-    :signal work_completed(uid, request_type, data_dict): Emitted every time 
-        a requested task has completed. ``uid`` is a unique id which matches 
-        the unique id returned by the corresponding request call. 
-        ``request_type`` is a string denoting the type of request this 
-        event is associated with. ``data_dict`` is a dictionary containing 
-        the payload of the request. It will be different depending on what 
-        type of request it is. 
-    
-    :signal work_failure(uid, error_message): Emitted every time a requested 
-        task has failed. ``uid`` is a unique id which matches the unique 
+
+    The thread will emit work_completed and work_failure signals when
+    tasks are completed (or fail). The :meth:`clear()` method will
+    clear the current queue. The currently processing item will finish
+    processing and may send out signals even after a clear. Make sure you
+    call the :meth:`stop()` method prior to destruction in order for the
+    system to gracefully shut down.
+
+    :signal work_completed(uid, request_type, data_dict): Emitted every time
+        a requested task has completed. ``uid`` is a unique id which matches
+        the unique id returned by the corresponding request call.
+        ``request_type`` is a string denoting the type of request this
+        event is associated with. ``data_dict`` is a dictionary containing
+        the payload of the request. It will be different depending on what
+        type of request it is.
+
+    :signal work_failure(uid, error_message): Emitted every time a requested
+        task has failed. ``uid`` is a unique id which matches the unique
         id returned by the corresponding request call.
-    
-    
+
+
     """
-    
+
     # syntax: work_completed(uid, request_type, data_dict)
     # - uid is a unique id which matches the unique id
     #   returned by the corresponding request call.
@@ -91,7 +91,7 @@ class ShotgunDataRetriever(QtCore.QObject):
 
 
     # Individual task priorities used when adding tasks to the task manager
-    # Note: a higher value means more important and will get run before lower 
+    # Note: a higher value means more important and will get run before lower
     # priority tasks
 
     # Attachment checks and downloads are more important than thumbnails,
@@ -99,7 +99,7 @@ class ShotgunDataRetriever(QtCore.QObject):
     # a nice-to-have. As a result, this gets a bit more priority.
     _CHECK_ATTACHMENT_PRIORITY      = 55
 
-    # thumbnail checks are local disk checks and very fast.  These 
+    # thumbnail checks are local disk checks and very fast.  These
     # are always carried out before any shotgun calls
     _CHECK_THUMB_PRIORITY           = 50
 
@@ -108,8 +108,8 @@ class ShotgunDataRetriever(QtCore.QObject):
     # (and it's typically also cached) so this call has a higher priority
     # than the rest of the shotgun calls
     _SG_DOWNLOAD_SCHEMA_PRIORITY    = 40
-    
-    # next the priority for any other Shotgun calls (e.g. find, create, 
+
+    # next the priority for any other Shotgun calls (e.g. find, create,
     # update, delete, etc.)
     _SG_CALL_PRIORITY               = 30
 
@@ -118,7 +118,7 @@ class ShotgunDataRetriever(QtCore.QObject):
     # As such, we'll give these downloads a bit more priority.
     _DOWNLOAD_ATTACHMENT_PRIORITY   = 25
 
-    # thumbnails are downloaded last as they are considered low-priority 
+    # thumbnails are downloaded last as they are considered low-priority
     # and can take a relatively significant amount of time
     _DOWNLOAD_THUMB_PRIORITY        = 20
 
@@ -224,7 +224,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         This will retrieve the source file for a thumbnail given a shotgun entity type and id.
         If the resolved thumbnail source file has already been cached, a path to it will be
         returned instantly. Otherwise, it will be downloaded from Shotgun and placed in the
-        standard cache location on disk. The full path to cached thumbnail is returned. 
+        standard cache location on disk. The full path to cached thumbnail is returned.
 
         This method returns the thumbnail file in the original format and resolution it was
         uploaded to Shotgun as, which should be considered arbitrary. To retrieve a transcoded
@@ -301,7 +301,9 @@ class ShotgunDataRetriever(QtCore.QObject):
         :raises:    TankError if there is no :class:`~task_manager.BackgroundTaskManager` associated with this instance
         """
         if not self._task_manager:
-            raise TankError("Unable to start the ShotgunDataRetriever as it has no BackgroundTaskManager!")
+            raise TankError("Unable to start the ShotgunDataRetriever as it has "
+                            "no BackgroundTaskManager!")
+
         self._task_manager.start_processing()
 
     def stop(self):
@@ -324,7 +326,7 @@ class ShotgunDataRetriever(QtCore.QObject):
             self._task_manager.shut_down()
             self._task_manager = None
         else:
-            # we don't own the task manager so just stop any tasks we might be running 
+            # we don't own the task manager so just stop any tasks we might be running
             # and disconnect from it:
             self._task_manager.stop_task_group(self._bg_tasks_group)
 
@@ -375,14 +377,14 @@ class ShotgunDataRetriever(QtCore.QObject):
         Execute the schema_read and schema_entity_read methods asynchronously
 
         :param project_id:  If specified, the schema listing returned will
-                            be constrained by the schema settings for 
+                            be constrained by the schema settings for
                             the given project.
         :returns: A unique identifier representing this request. This
                   identifier is also part of the payload sent via the
                   work_completed and work_failure signals, making it
                   possible to match them up.
         """
-        return self._add_task(self._task_get_schema, 
+        return self._add_task(self._task_get_schema,
                               priority = ShotgunDataRetriever._SG_DOWNLOAD_SCHEMA_PRIORITY,
                               task_kwargs = {"project_id":project_id})
 
@@ -403,7 +405,7 @@ class ShotgunDataRetriever(QtCore.QObject):
                   possible to match them up.
 
         """
-        return self._add_task(self._task_execute_find, 
+        return self._add_task(self._task_execute_find,
                               priority = ShotgunDataRetriever._SG_CALL_PRIORITY,
                               task_args = args,
                               task_kwargs = kwargs)
@@ -425,7 +427,7 @@ class ShotgunDataRetriever(QtCore.QObject):
                   possible to match them up.
 
         """
-        return self._add_task(self._task_execute_find_one, 
+        return self._add_task(self._task_execute_find_one,
                               priority = ShotgunDataRetriever._SG_CALL_PRIORITY,
                               task_args = args,
                               task_kwargs = kwargs)
@@ -444,9 +446,9 @@ class ShotgunDataRetriever(QtCore.QObject):
         :returns: A unique identifier representing this request. This
                   identifier is also part of the payload sent via the
                   work_completed and work_failure signals, making it
-                  possible to match them up.        
+                  possible to match them up.
         """
-        return self._add_task(self._task_execute_update, 
+        return self._add_task(self._task_execute_update,
                               priority = ShotgunDataRetriever._SG_CALL_PRIORITY,
                               task_args = args,
                               task_kwargs = kwargs)
@@ -465,9 +467,9 @@ class ShotgunDataRetriever(QtCore.QObject):
         :returns: A unique identifier representing this request. This
                   identifier is also part of the payload sent via the
                   work_completed and work_failure signals, making it
-                  possible to match them up.        
+                  possible to match them up.
         """
-        return self._add_task(self._task_execute_create, 
+        return self._add_task(self._task_execute_create,
                               priority = ShotgunDataRetriever._SG_CALL_PRIORITY,
                               task_args = args,
                               task_kwargs = kwargs)
@@ -486,9 +488,9 @@ class ShotgunDataRetriever(QtCore.QObject):
         :returns: A unique identifier representing this request. This
                   identifier is also part of the payload sent via the
                   work_completed and work_failure signals, making it
-                  possible to match them up.        
+                  possible to match them up.
         """
-        return self._add_task(self._task_execute_delete, 
+        return self._add_task(self._task_execute_delete,
                               priority = ShotgunDataRetriever._SG_CALL_PRIORITY,
                               task_args = args,
                               task_kwargs = kwargs)
@@ -500,7 +502,7 @@ class ShotgunDataRetriever(QtCore.QObject):
 
         The specified method will be called on the following form::
 
-            method(sg, data) 
+            method(sg, data)
 
         Where sg is a shotgun API instance. Data is typically
         a dictionary with specific data that the method needs.
@@ -513,13 +515,13 @@ class ShotgunDataRetriever(QtCore.QObject):
         :returns: A unique identifier representing this request. This
                   identifier is also part of the payload sent via the
                   work_completed and work_failure signals, making it
-                  possible to match them up.        
+                  possible to match them up.
         """
         # note that as the 'task' is actually going to call through to another method, we
         # encode the method name, args and kwargs in the task's kwargs dictionary as this
         # keeps them nicely encapsulated.
         task_kwargs = {"method":method, "method_args":args, "method_kwargs":kwargs}
-        return self._add_task(self._task_execute_method, 
+        return self._add_task(self._task_execute_method,
                               priority = ShotgunDataRetriever._SG_CALL_PRIORITY,
                               task_kwargs = task_kwargs)
 
@@ -645,8 +647,15 @@ class ShotgunDataRetriever(QtCore.QObject):
         if not self._task_manager:
             raise TankError("Data retriever does not have a task manager to add the task to!")
 
+        print 'adding task!'
+        if not task_cb:
+            print 'no task cb'
+        print 'task args:', task_args
+        print 'task kwargs:', task_kwargs
+        #import pdb; pdb.set_trace()
+
         task_id = self._task_manager.add_task(task_cb,
-                                              priority, 
+                                              priority,
                                               group = self._bg_tasks_group,
                                               task_args = task_args,
                                               task_kwargs = task_kwargs)
@@ -712,16 +721,16 @@ class ShotgunDataRetriever(QtCore.QObject):
 
     def request_thumbnail(self, url, entity_type, entity_id, field, load_image=False):
         """
-        Downloads a thumbnail from Shotgun asynchronously or returns a cached thumbnail 
+        Downloads a thumbnail from Shotgun asynchronously or returns a cached thumbnail
         if found.  Optionally loads the thumbnail into a QImage.
 
         :param url:         The thumbnail url string that is associated with this thumbnail. This is
                             the field value as returned by a Shotgun query.
         :param entity_type: Shotgun entity type with which the thumb is associated.
         :param entity_id:   Shotgun entity id with which the thumb is associated.
-        :param field:       Thumbnail field. Normally 'image' but could also for example be a deep 
+        :param field:       Thumbnail field. Normally 'image' but could also for example be a deep
                             link field such as ``sg_sequence.Sequence.image``
-        :param load_image:  If set to True, the return data structure will contain a QImage object 
+        :param load_image:  If set to True, the return data structure will contain a QImage object
                             with the image data loaded.
 
         :returns: A unique identifier representing this request. This
@@ -740,7 +749,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         check_task_id = self._task_manager.add_task(self._task_check_thumbnail,
                                                     priority = self._CHECK_THUMB_PRIORITY,
                                                     group = self._bg_tasks_group,
-                                                    task_kwargs = {"url":url, 
+                                                    task_kwargs = {"url":url,
                                                                    "load_image":load_image})
 
         # Add download thumbnail task.  This is dependent on the check task above and will be passed
@@ -751,7 +760,7 @@ class ShotgunDataRetriever(QtCore.QObject):
                                                  priority = self._DOWNLOAD_THUMB_PRIORITY,
                                                  group = self._bg_tasks_group,
                                                  task_kwargs = {"url":url,
-                                                                "entity_type":entity_type, 
+                                                                "entity_type":entity_type,
                                                                 "entity_id":entity_id,
                                                                 "field":field,
                                                                 "load_image":load_image
@@ -877,8 +886,8 @@ class ShotgunDataRetriever(QtCore.QObject):
                         file_path = "%s.jpeg" % file_path
                         sgtk.util.download_url(self._bundle.shotgun, url, file_path)
 
-        # now we have a thumbnail on disk, either via the direct download, or via the 
-        # url-fresh-then-download approach.  Because the file is downloaded with user-only 
+        # now we have a thumbnail on disk, either via the direct download, or via the
+        # url-fresh-then-download approach.  Because the file is downloaded with user-only
         # permissions we have to modify the permissions so that it's writeable by others
         old_umask = os.umask(0)
         try:
@@ -963,7 +972,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         hash_str = url_hash.hexdigest()
 
         # Now turn this hash into a tree structure. For a discussion about sensible
-        # sharding methodology, see 
+        # sharding methodology, see
         # http://stackoverflow.com/questions/13841931/using-guids-as-folder-names-splitting-up
         #
         # From the hash, generate paths on the form C1C2/C3C4/rest_of_hash
@@ -1033,9 +1042,9 @@ class ShotgunDataRetriever(QtCore.QObject):
         Method that gets executed in a background task/thread to retrieve the fields
         and types schema from Shotgun
 
-        :param project_id:  The id of the project to query the schema for or None to 
+        :param project_id:  The id of the project to query the schema for or None to
                             retrieve for all projects
-        :returns:           Dictionary containing the 'action' together with the schema 
+        :returns:           Dictionary containing the 'action' together with the schema
                             fields and types
         """
         if project_id is not None:
@@ -1058,7 +1067,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         find query
 
         :param ``*args``:       Unnamed arguments to be passed to the find() call
-        :param ``**kwargs``:    Named arguments to be passed to the find() call 
+        :param ``**kwargs``:    Named arguments to be passed to the find() call
         :returns:           Dictionary containing the 'action' together with result
                             returned by the find() call
         """
@@ -1071,7 +1080,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         find_one query
 
         :param ``*args``:       Unnamed arguments to be passed to the find_one() call
-        :param ``**kwargs``:    Named arguments to be passed to the find_one() call 
+        :param ``**kwargs``:    Named arguments to be passed to the find_one() call
         :returns:           Dictionary containing the 'action' together with result
                             returned by the find_one() call
         """
@@ -1084,7 +1093,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         update call
 
         :param ``*args``:       Unnamed arguments to be passed to the update() call
-        :param ``**kwargs``:    Named arguments to be passed to the update() call 
+        :param ``**kwargs``:    Named arguments to be passed to the update() call
         :returns:           Dictionary containing the 'action' together with result
                             returned by the update() call
         """
@@ -1097,7 +1106,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         create call
 
         :param ``*args``:       Unnamed arguments to be passed to the create() call
-        :param ``**kwargs``:    Named arguments to be passed to the create() call 
+        :param ``**kwargs``:    Named arguments to be passed to the create() call
         :returns:           Dictionary containing the 'action' together with result
                             returned by the create() call
         """
@@ -1110,7 +1119,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         delete call
 
         :param ``*args``:       Unnamed arguments to be passed to the delete() call
-        :param ``**kwargs``:    Named arguments to be passed to the delete() call 
+        :param ``**kwargs``:    Named arguments to be passed to the delete() call
         :returns:           Dictionary containing the 'action' together with result
                             returned by the delete() call
         """
@@ -1124,7 +1133,7 @@ class ShotgunDataRetriever(QtCore.QObject):
 
         :param method:          The method to be run asynchronously
         :param method_args:     Arguments to be passed to the method
-        :param method_kwargs:   Named arguments to be passed to the method 
+        :param method_kwargs:   Named arguments to be passed to the method
         :returns:               Dictionary containing the 'action' together with the result
                                 returned by the method
         """
@@ -1246,7 +1255,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         Check to see if a thumbnail exists for the specified url.  If it does then it is returned.
 
         :param url:         The url to return the cached path for
-        :param load_image:  If True then if the thumbnail is found in the cache then the file will 
+        :param load_image:  If True then if the thumbnail is found in the cache then the file will
                             be loaded into a QImage
         :returns:           A dictionary containing the cached path for the specified url and a QImage
                             if load_image is True and the thumbnail exists in the cache.
@@ -1316,7 +1325,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         Download the thumbnail for the specified entity type, id and field.  This downloads the
         thumbnail into the thumbnail cache directory and returns the cached path.
 
-        If thumb_path already contains a path then this method does nothing and just returns the path 
+        If thumb_path already contains a path then this method does nothing and just returns the path
         without further checking/work.
 
         :param thumb_path:  Path to an existing thumbnail or None.
@@ -1324,7 +1333,7 @@ class ShotgunDataRetriever(QtCore.QObject):
         :param entity_type: Type of the entity to retrieve the thumbnail for
         :param entity_id:   Id of the entity to retrieve the thumbnail for
         :param field:       The field on the entity that holds the url for the thumbnail to retrieve
-        :param load_image:  If True then if the thumbnail is downloaded from Shotgun then the file will 
+        :param load_image:  If True then if the thumbnail is downloaded from Shotgun then the file will
                             be loaded into a QImage
         :returns:           A dictionary containing the cached path for the specified url and a QImage
                             if load_image is True and the thumbnail exists in the cache.
